@@ -135,9 +135,22 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
-                if (Mathf.Abs(h_input) > 0f || Mathf.Abs(v_input) > 0f)
+                Vector3 h_dash = Vector3.zero;
+                Vector3 v_dash = Vector3.zero;
+                float h = Mathf.Abs(h_input);
+                float v = Mathf.Abs(v_input);
+
+                if (h > 0f || v > 0f)
                 {
-                    playerBody.AddForce(((transform.right * h_input) + (transform.forward * v_input)) * dashForce);
+                    if (h > 0f)
+                    {
+                        h_dash = transform.right * (h_input / h);
+                    }
+                    if (v > 0f)
+                    {
+                        v_dash = transform.forward * (v_input / v);
+                    }
+                    playerBody.AddForce((h_dash + v_dash) * dashForce);
                 }
                 else
                 {
