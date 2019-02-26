@@ -3,9 +3,9 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuManager : MonoBehaviour
 {
-    // Load the test scene (PLACEHOLDER)
-    public void PlayGame()
+    // Load a scene
+    public void LoadScene(string sceneName)
     {
-        SceneManager.LoadScene("Playground");
+        SceneManager.LoadScene(sceneName);
     }
 }

@@ -12,32 +12,37 @@ public class PlayerController : MonoBehaviour
     private Camera playerCamera;
     public float cameraSensitivity = 50f;
     private bool cursorLocked;
-    float camRotate;
-    float charRotate;
+    private float camRotate;
+    private float charRotate;
 
     // Player Movement
     private Rigidbody playerBody;
-    bool isCrouched = false;
+    private bool isCrouched;
+    public float crouchHeight = 0.6f;
     public float moveSpeed;
     public float moveAcceleration = 10f;
     public float moveDeceleration = 5f;
     public float jumpForce = 3f;
     public float jumpHeightTimer;
-    public int curJumpCount = 0;
+    public int curJumpCount;
     public int maxJumpCount = 2;
     public float gracePeriod = 0.1f;
 
     // Ground and Wall Check
     public bool grounded;
     public bool colliding;
-    public bool onWall = false;
+    public bool onWall;
+    public float wallRunTimer;
+    public float wallRunDuration = 1f;
+    public float climbSpeed = 2f;
     public RaycastHit observedObj;
 
     // Dash
     public bool dashReady = true;
     public float dashTimer;
     public float dashCooldown = 3f;
-    public float dashForce = 50f;
+    public float dashForce = 20f;
+    public GameObject dashEffect;
 
     // UI Elements
     public Slider dashCooldownSlider;
@@ -62,7 +67,7 @@ public class PlayerController : MonoBehaviour
         // Ground Movement
         float h_input = Input.GetAxis("Horizontal");
         float v_input = Input.GetAxis("Vertical");
-        Vector3 moveVelocity = Vector3.zero;
+        Vector3 move_velocity = Vector3.zero;
 
         if (moveSpeed > 0f)
         {
@@ -74,17 +79,23 @@ public class PlayerController : MonoBehaviour
             {
                 moveSpeed += Time.deltaTime * moveAcceleration;
             }
-            moveVelocity += Time.deltaTime * transform.right * h_input * moveSpeed;
+            move_velocity += Time.deltaTime * transform.right * h_input * moveSpeed;
         }
         if (Mathf.Abs(v_input) > 0f)
         {
             if (moveSpeed < MAXSPEED)
             {
-                moveSpeed += Time.deltaTime * moveAcceleration;
+                moveSpeed += Time.deltaTime * (MAXSPEED - (moveSpeed / MAXSPEED));
             }
-            moveVelocity += Time.deltaTime * transform.forward * v_input * moveSpeed;
+            move_velocity += Time.deltaTime * transform.forward * v_input * moveSpeed;
+
+            if (v_input > 0f && onWall)
+            {
+                playerBody.velocity = Vector3.up * climbSpeed;
+            }
         }
-        playerBody.MovePosition(transform.position + moveVelocity);
+        //playerBody.AddForce(move_velocity * (1 - (playerBody.velocity.magnitude / MAXSPEED)));
+        playerBody.MovePosition(transform.position + move_velocity);
 
         // Camera Movement
 
@@ -96,8 +107,8 @@ public class PlayerController : MonoBehaviour
 
         charRotate += Input.GetAxis("Mouse X") * Time.deltaTime * cameraSensitivity;
         camRotate -= Input.GetAxis("Mouse Y") * Time.deltaTime * cameraSensitivity;
-        camRotate = Mathf.Clamp(camRotate, -90, 90);
-        playerCamera.transform.transform.rotation = Quaternion.Euler(camRotate, charRotate, 0);
+        camRotate = Mathf.Clamp(camRotate, -90f, 90f);
+        playerCamera.transform.rotation = Quaternion.Euler(camRotate, charRotate, 0f);
 
         /*
         float mouse_x = Input.GetAxis("Mouse X");
@@ -132,41 +143,47 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.C))
         {
-            if (isCrouched == false)
+            if (isCrouched)
             {
-                this.transform.localScale = new Vector3(1f, .6f, 1f);
+                transform.localScale = Vector3.one;
+                isCrouched = false;
+                moveAcceleration = 10f;
+                MAXSPEED = 10f;
+            }
+            else
+            {
+                transform.localScale = Vector3.one * crouchHeight;
                 isCrouched = true;
                 moveAcceleration = 7f;
                 MAXSPEED = 7f;
-}
-            else
-            {
-                this.transform.localScale = new Vector3(1f, 1f, 1f);
-                isCrouched = false;
-                MAXSPEED = 10f;
-                moveAcceleration = 10f;
             }
         }
 
         // Jumping
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            curJumpCount += 1;
+            curJumpCount++;
             if (grounded || curJumpCount < maxJumpCount)
             {
                 jumpHeightTimer = 0f;
+                wallRunTimer = 0f;
             }
         }
         if (Input.GetKeyUp(KeyCode.Space))
         {
             jumpHeightTimer = MAXAIRTIME;
+            playerBody.mass = STARTINGMASS;
         }
         if (Input.GetKey(KeyCode.Space))
         {
             jumpHeightTimer += Time.deltaTime;
             if (colliding) // Reduce mass to simulate lowered gravity while attached to wall
             {
-                playerBody.mass = STARTINGMASS / 2;
+                wallRunTimer += Time.deltaTime;
+                if (wallRunTimer < wallRunDuration)
+                {
+                    playerBody.mass = STARTINGMASS / 100f;
+                }
             }
             if (jumpHeightTimer < MAXAIRTIME)
             {
@@ -176,8 +193,9 @@ public class PlayerController : MonoBehaviour
 
         // Wall Climbing
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out observedObj, 5.0f)) {
-            if (observedObj.collider.tag.Equals("climbwall"))
+        if (Physics.Raycast(transform.position, transform.forward, out observedObj, 5.0f))
+        {
+            if (observedObj.collider.tag.Equals("ClimbableWall"))
             {
                 climb.gameObject.SetActive(true);
             }
@@ -207,12 +225,16 @@ public class PlayerController : MonoBehaviour
                     {
                         v_dash = transform.forward * (v_input / v);
                     }
-                    playerBody.AddForce((h_dash + v_dash) * dashForce);
+                    playerBody.velocity = (h_dash + v_dash) * dashForce;
+                    //playerBody.AddForce((h_dash + v_dash) * dashForce, ForceMode.Impulse);
                 }
                 else
                 {
-                    playerBody.AddForce(transform.forward * dashForce);
+                    playerBody.velocity = transform.forward * dashForce;
+                    //playerBody.AddForce(transform.forward * dashForce, ForceMode.Impulse);
                 }
+                dashEffect.GetComponent<ParticleSystem>().Play();
+
                 dashReady = false;
             }
             dashCooldownSlider.value = dashCooldownSlider.maxValue;
@@ -247,23 +269,23 @@ public class PlayerController : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         colliding = true;
-        if (collision.gameObject.tag.Equals("bounce block"))
-        {
-            this.GetComponent<Rigidbody>().AddForce(new Vector3(0f, 13f), ForceMode.Impulse);
-        }
+        //if (collision.gameObject.tag.Equals("BounceBlock"))
+        //{
+        //    this.GetComponent<Rigidbody>().AddForce(new Vector3(0f, 13f), ForceMode.Impulse);
+        //}
     }
 
     private void OnCollisionStay(Collision collision)
     {
-        if (collision.gameObject.tag.Equals("climbwall"))
+        if (collision.gameObject.tag.Equals("ClimbableWall"))
         {
             onWall = true;
             curJumpCount = 0;
 
-            if (Input.GetKey(KeyCode.W))
-            {
-                    this.GetComponent<Rigidbody>().AddForce(new Vector3(0f, .25f), ForceMode.Impulse);
-            }
+            //if (Input.GetKey(KeyCode.W))
+            //{
+            //        this.GetComponent<Rigidbody>().AddForce(new Vector3(0f, .25f), ForceMode.Impulse);
+            //}
         }
     }
 
@@ -272,6 +294,6 @@ public class PlayerController : MonoBehaviour
         colliding = false;
         onWall = false;
         playerBody.mass = STARTINGMASS;
-        this.GetComponent<Rigidbody>().AddForce(new Vector3(0f, -1.25f), ForceMode.Impulse);
+        playerBody.AddForce(Vector3.down, ForceMode.Impulse);
     }
 }
