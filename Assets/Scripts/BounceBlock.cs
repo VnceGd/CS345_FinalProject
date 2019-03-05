@@ -2,7 +2,7 @@
 
 public class BounceBlock : MonoBehaviour
 {
-    public float bounceForce = 15f;
+    public float bounceForce = 20f;
 
     private void OnCollisionEnter(Collision collision)
     {
