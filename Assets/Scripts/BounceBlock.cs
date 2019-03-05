@@ -9,7 +9,10 @@ public class BounceBlock : MonoBehaviour
         Rigidbody collidedBody = collision.gameObject.GetComponent<Rigidbody>();
         if (collidedBody)
         {
-            collidedBody.velocity = Vector3.up * bounceForce;
+            //collidedBody.AddForce(Vector3.up * bounceForce);
+            collidedBody.velocity = new Vector3(collidedBody.velocity.x,
+                                                bounceForce,
+                                                collidedBody.velocity.z);
         }
     }
 }
