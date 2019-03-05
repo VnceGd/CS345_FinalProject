@@ -4,8 +4,10 @@ using UnityEngine.Rendering.PostProcessing;
 
 public class PlayerController : MonoBehaviour
 {
+    // Managers
+    private MainMenuManager mainMenuManager;
+
     // Constants
-    private float MAXSPEED = 10f;
     private readonly float MAXAIRTIME = .25f;
 
     // Camera
@@ -20,26 +22,29 @@ public class PlayerController : MonoBehaviour
     private Rigidbody playerBody;
     private bool isCrouched;
     public float crouchHeight = 0.6f;
-    public float moveSpeed;
-    public float moveDeceleration = 5f;
-    public float jumpForce = 3f;
-    public float jumpHeightTimer;
-    public int curJumpCount;
+    private float maxSpeed = 10f;
+    public float moveSpeed = 7000f;
+    public float moveDeceleration = 400f;
+
+    public float jumpForce = 7f;
+    private float jumpHeightTimer;
+    private int curJumpCount;
     public int maxJumpCount = 2;
     public float gracePeriod = 0.1f;
 
     // Ground and Wall Check
-    public bool grounded;
-    public bool colliding;
-    public bool onWall;
-    public float wallRunTimer;
-    public float wallRunDuration = 2f;
+    private bool grounded;
+    private bool colliding;
+    private bool onWall;
+    private bool onBouncy;
+    private float wallRunTimer;
+    public float wallRunDuration = 1f;
     public float climbSpeed = 2f;
-    public RaycastHit observedObj;
+    private RaycastHit observedObj;
 
     // Dash
-    public bool dashReady = true;
-    public float dashTimer;
+    private bool dashReady = true;
+    private float dashTimer;
     public float dashCooldown = 3f;
     public float dashForce = 20f;
     public float dashDuration = 0.3f;
@@ -51,6 +56,8 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     public void Start()
     {
+        mainMenuManager = GameObject.Find("Menu Manager").GetComponent<MainMenuManager>();
+
         playerBody = GetComponentInChildren<Rigidbody>();
         playerCamera = GetComponentInChildren<Camera>();
 
@@ -85,13 +92,18 @@ public class PlayerController : MonoBehaviour
                 playerBody.velocity = Vector3.up * climbSpeed;
             }
         }
-        if (playerBody.velocity.magnitude < MAXSPEED)
+        if (playerBody.velocity.magnitude < maxSpeed)
         {
-            playerBody.AddForce(move_velocity * (1 - (playerBody.velocity.magnitude / MAXSPEED)));
+            playerBody.AddForce(move_velocity * (1 - (playerBody.velocity.magnitude / maxSpeed)));
         }
         if (grounded)
         {
             playerBody.AddForce(Time.deltaTime * moveDeceleration * -playerBody.velocity);
+        }
+        else
+        {
+            playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f *
+                                new Vector3(-playerBody.velocity.x, 0f, -playerBody.velocity.z));
         }
 
         // Camera Movement
@@ -134,13 +146,13 @@ public class PlayerController : MonoBehaviour
             {
                 transform.localScale = Vector3.one;
                 isCrouched = false;
-                MAXSPEED = 10f;
+                maxSpeed = 10f;
             }
             else
             {
                 transform.localScale = Vector3.one * crouchHeight;
                 isCrouched = true;
-                MAXSPEED = 7f;
+                maxSpeed = 7f;
             }
         }
 
@@ -164,9 +176,17 @@ public class PlayerController : MonoBehaviour
             if (colliding)
             {
                 wallRunTimer += Time.deltaTime;
-                if (!onWall && wallRunTimer < wallRunDuration)
+                if (!onWall && !onBouncy && wallRunTimer < wallRunDuration)
                 {
-                    playerBody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+                    if (Physics.Raycast(transform.position, transform.right, 1f) ||
+                        Physics.Raycast(transform.position, -transform.right, 1f))
+                    {
+                        if (!grounded)
+                        {
+                            playerBody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+                        }
+                    }
+
                 }
                 else
                 {
@@ -220,7 +240,14 @@ public class PlayerController : MonoBehaviour
                 }
                 else
                 {
-                    playerBody.velocity = transform.forward * dashForce;
+                    if (grounded)
+                    {
+                        playerBody.velocity = transform.forward * dashForce;
+                    }
+                    else
+                    {
+                        playerBody.velocity = transform.forward * dashForce * 0.5f;
+                    }
                 }
                 chromaticAberration.enabled.value = true;
 
@@ -258,6 +285,11 @@ public class PlayerController : MonoBehaviour
                 cursorLocked = true;
                 Cursor.lockState = CursorLockMode.Locked;
             }
+
+            if (mainMenuManager)
+            {
+                mainMenuManager.ToggleMenu();
+            }
         }
     }
 
@@ -266,6 +298,10 @@ public class PlayerController : MonoBehaviour
         if(!grounded)
         {
             colliding = true;
+        }
+        if (collision.gameObject.tag.Equals("BounceBlock"))
+        {
+            onBouncy = true;
         }
     }
 
@@ -282,6 +318,7 @@ public class PlayerController : MonoBehaviour
     {
         colliding = false;
         onWall = false;
+        onBouncy = false;
         playerBody.constraints = RigidbodyConstraints.FreezeRotation;
         playerBody.AddForce(Vector3.down, ForceMode.Impulse);
     }
