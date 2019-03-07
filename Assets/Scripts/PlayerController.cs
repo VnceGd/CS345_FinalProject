@@ -104,7 +104,8 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f * new Vector3(-playerBody.velocity.x, 0f, -playerBody.velocity.z));
+            playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f * 
+                                new Vector3(-playerBody.velocity.x, 0f, -playerBody.velocity.z));
         }
 
         // Camera Movement
@@ -168,9 +169,9 @@ public class PlayerController : MonoBehaviour
         // Jumping
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            curJumpCount++;
             if (grounded || curJumpCount < maxJumpCount)
             {
+                curJumpCount++;
                 jumpHeightTimer = 0f;
                 wallRunTimer = 0f;
             }
