@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     private int curJumpCount;
     public int maxJumpCount = 2;
     public float gracePeriod = 0.1f;
+    private float gracePeriodTimer;
 
     // Ground and Wall Check
     private bool grounded;
@@ -98,7 +99,7 @@ public class PlayerController : MonoBehaviour
         {
             playerBody.AddForce(move_velocity * (1 - (playerBody.velocity.magnitude / maxSpeed)));
         }
-        if (grounded)
+        if (grounded && move_velocity.magnitude < 0.1f)
         {
             playerBody.AddForce(Time.deltaTime * moveDeceleration * -playerBody.velocity);
         }
@@ -122,20 +123,20 @@ public class PlayerController : MonoBehaviour
         playerCamera.transform.rotation = Quaternion.Euler(camRotate, charRotate, 0f);
 
         // Check grounded
-        if (Physics.Raycast(transform.position, Vector3.down, 2f))
+        if (Physics.Raycast(transform.position, Vector3.down, 1.25f))
         {
             if (!grounded)
             {
                 playerCamera.GetComponent<Animation>().Play();
-                grounded = true;
             }
-            gracePeriod = 0.1f;
+            grounded = true;
+            gracePeriodTimer = gracePeriod;
             curJumpCount = 0;
         }
         else
         {
-            gracePeriod -= Time.deltaTime;
-            if (gracePeriod <= 0f)
+            gracePeriodTimer -= Time.deltaTime;
+            if (gracePeriodTimer <= 0f)
             {
                 grounded = false;
             }
@@ -169,16 +170,16 @@ public class PlayerController : MonoBehaviour
         // Jumping
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (grounded || curJumpCount < maxJumpCount)
+            curJumpCount++;
+            if (grounded || (curJumpCount < maxJumpCount && jumpHeightTimer > MAXAIRTIME))
             {
-                curJumpCount++;
                 jumpHeightTimer = 0f;
                 wallRunTimer = 0f;
             }
         }
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            jumpHeightTimer = MAXAIRTIME;
+            //jumpHeightTimer = MAXAIRTIME;
         }
         if (Input.GetKey(KeyCode.Space))
         {
