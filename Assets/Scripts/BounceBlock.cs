@@ -10,9 +10,7 @@ public class BounceBlock : MonoBehaviour
         if (collidedBody)
         {
             //collidedBody.AddForce(Vector3.up * bounceForce);
-            collidedBody.velocity = new Vector3(collidedBody.velocity.x,
-                                                bounceForce,
-                                                collidedBody.velocity.z);
+            collidedBody.velocity = new Vector3(collidedBody.velocity.x,bounceForce,collidedBody.velocity.z);
         }
     }
 }

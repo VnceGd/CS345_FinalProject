@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -18,9 +19,10 @@ public class PlayerController : MonoBehaviour
     private float charRotate;
     private ChromaticAberration chromaticAberration;
 
-    // Player Movement
+    // Player Movement / Status
     private Rigidbody playerBody;
     private bool isCrouched;
+    private bool isDead = false;
     public float crouchHeight = 0.6f;
     private float maxSpeed = 10f;
     public float moveSpeed = 7000f;
@@ -102,8 +104,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f *
-                                new Vector3(-playerBody.velocity.x, 0f, -playerBody.velocity.z));
+            playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f * new Vector3(-playerBody.velocity.x, 0f, -playerBody.velocity.z));
         }
 
         // Camera Movement
@@ -137,6 +138,14 @@ public class PlayerController : MonoBehaviour
             {
                 grounded = false;
             }
+        }
+
+        //Check if Alive
+
+        if (isDead)
+        {
+            Scene cur_Scene = SceneManager.GetActiveScene();
+            SceneManager.LoadScene(cur_Scene.name, LoadSceneMode.Single);
         }
 
         // Crouching
@@ -302,6 +311,10 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.tag.Equals("BounceBlock"))
         {
             onBouncy = true;
+        }
+        if (collision.gameObject.tag.Equals("Hazard"))
+        {
+            isDead = true;
         }
     }
 
