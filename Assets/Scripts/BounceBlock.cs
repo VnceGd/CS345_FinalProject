@@ -10,9 +10,7 @@ public class BounceBlock : MonoBehaviour
         if (collidedBody)
         {
             //collidedBody.AddForce(Vector3.up * bounceForce * 50f);
-            collidedBody.velocity = new Vector3(collidedBody.velocity.x,
-                                                bounceForce,
-                                                collidedBody.velocity.z);
+            collidedBody.velocity = new Vector3(collidedBody.velocity.x, bounceForce, collidedBody.velocity.z);
 
         }
     }
@@ -22,9 +20,7 @@ public class BounceBlock : MonoBehaviour
         Rigidbody otherBody = other.gameObject.GetComponent<Rigidbody>();
         if (otherBody)
         {
-            otherBody.velocity = new Vector3(otherBody.velocity.x,
-                                             bounceForce,
-                                             otherBody.velocity.z);
+            otherBody.velocity = new Vector3(otherBody.velocity.x, bounceForce, otherBody.velocity.z);
         }
     }
 }

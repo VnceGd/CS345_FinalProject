@@ -18369,73 +18369,9 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_IsSelectable: 1
-  m_SelectedFaces: a3000000a7000000a9000000ab000000ad000000af000000b1000000b3000000
-  m_SelectedEdges:
-  - a: 680
-    b: 681
-  - a: 682
-    b: 680
-  - a: 681
-    b: 683
-  - a: 683
-    b: 682
-  - a: 696
-    b: 697
-  - a: 698
-    b: 696
-  - a: 697
-    b: 699
-  - a: 699
-    b: 698
-  - a: 704
-    b: 705
-  - a: 706
-    b: 704
-  - a: 705
-    b: 707
-  - a: 707
-    b: 706
-  - a: 712
-    b: 713
-  - a: 714
-    b: 712
-  - a: 713
-    b: 715
-  - a: 715
-    b: 714
-  - a: 720
-    b: 721
-  - a: 722
-    b: 720
-  - a: 721
-    b: 723
-  - a: 723
-    b: 722
-  - a: 728
-    b: 729
-  - a: 730
-    b: 728
-  - a: 729
-    b: 731
-  - a: 731
-    b: 730
-  - a: 736
-    b: 737
-  - a: 738
-    b: 736
-  - a: 737
-    b: 739
-  - a: 739
-    b: 738
-  - a: 744
-    b: 745
-  - a: 746
-    b: 744
-  - a: 745
-    b: 747
-  - a: 747
-    b: 746
-  m_SelectedVertices: a8020000a9020000aa020000ab020000b8020000b9020000ba020000bb020000c0020000c1020000c2020000c3020000c8020000c9020000ca020000cb020000d0020000d1020000d2020000d3020000d8020000d9020000da020000db020000e0020000e1020000e2020000e3020000e8020000e9020000ea020000eb020000
+  m_SelectedFaces: 
+  m_SelectedEdges: []
+  m_SelectedVertices: 
 --- !u!33 &585443185
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -18461,7 +18397,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 08d79b5621467401fb779c9064f82a3d, type: 2}
+  - {fileID: 2100000, guid: c484a9a1482bf49459b2d7e500c2c2cf, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -32595,25 +32531,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1358965571}
   m_Mesh: {fileID: 231491926}
---- !u!1 &1368708739 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1614449192511557654, guid: 625da47e038c2461d8bf75c8dbb0ce3b,
-    type: 3}
-  m_PrefabInstance: {fileID: 908421826}
-  m_PrefabAsset: {fileID: 0}
---- !u!135 &1368708740
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1368708739}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.8
-  m_Center: {x: -0.000000029802326, y: -2.4, z: 0.000000029802326}
 --- !u!1001 &1415067606
 PrefabInstance:
   m_ObjectHideFlags: 0
