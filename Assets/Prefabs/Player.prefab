@@ -390,10 +390,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 256d4406e827b4318a4854e43bb6e6e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraSensitivity: 150
+  cameraSensitivity: 120
   crouchHeight: 0.6
   moveSpeed: 7000
-  moveDeceleration: 400
+  moveDeceleration: 600
   jumpForce: 7
   maxJumpCount: 2
   gracePeriod: 0.1
@@ -404,7 +404,6 @@ MonoBehaviour:
   dashDuration: 0.3
   dashCooldownSlider: {fileID: 8729165167247939115}
   climb: {fileID: 6241283998881716661}
-  menuPanel: {fileID: 0}
 --- !u!1 &1653809771458299283
 GameObject:
   m_ObjectHideFlags: 0

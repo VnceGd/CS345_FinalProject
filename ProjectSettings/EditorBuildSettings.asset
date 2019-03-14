@@ -17,4 +17,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Desert.unity
     guid: 35831dbfc426b4f1188764a411300a3f
+  - enabled: 1
+    path: Assets/Scenes/Lava.unity
+    guid: 0b683d0dea00941d792faa3e3250a9fb
+  - enabled: 1
+    path: Assets/Scenes/Void.unity
+    guid: 7b9f68cdca2404803a297fda357d753d
+  - enabled: 1
+    path: Assets/Scenes/Desert 1.unity
+    guid: beebe5416069f174fa57928aeebebf18
   m_configObjects: {}

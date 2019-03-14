@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -18,9 +19,10 @@ public class PlayerController : MonoBehaviour
     private float charRotate;
     private ChromaticAberration chromaticAberration;
 
-    // Player Movement
+    // Player Movement / Status
     private Rigidbody playerBody;
     private bool isCrouched;
+    private bool isDead = false;
     public float crouchHeight = 0.6f;
     private float maxSpeed = 10f;
     public float moveSpeed = 7000f;
@@ -31,6 +33,7 @@ public class PlayerController : MonoBehaviour
     private int curJumpCount;
     public int maxJumpCount = 2;
     public float gracePeriod = 0.1f;
+    private float gracePeriodTimer;
 
     // Ground and Wall Check
     private bool grounded;
@@ -96,13 +99,13 @@ public class PlayerController : MonoBehaviour
         {
             playerBody.AddForce(move_velocity * (1 - (playerBody.velocity.magnitude / maxSpeed)));
         }
-        if (grounded)
+        if (grounded && move_velocity.magnitude < 0.1f)
         {
             playerBody.AddForce(Time.deltaTime * moveDeceleration * -playerBody.velocity);
         }
         else
         {
-            playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f *
+            playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f * 
                                 new Vector3(-playerBody.velocity.x, 0f, -playerBody.velocity.z));
         }
 
@@ -120,23 +123,31 @@ public class PlayerController : MonoBehaviour
         playerCamera.transform.rotation = Quaternion.Euler(camRotate, charRotate, 0f);
 
         // Check grounded
-        if (Physics.Raycast(transform.position, Vector3.down, 2f))
+        if (Physics.Raycast(transform.position, Vector3.down, 1.25f))
         {
             if (!grounded)
             {
                 playerCamera.GetComponent<Animation>().Play();
-                grounded = true;
             }
-            gracePeriod = 0.1f;
+            grounded = true;
+            gracePeriodTimer = gracePeriod;
             curJumpCount = 0;
         }
         else
         {
-            gracePeriod -= Time.deltaTime;
-            if (gracePeriod <= 0f)
+            gracePeriodTimer -= Time.deltaTime;
+            if (gracePeriodTimer <= 0f)
             {
                 grounded = false;
             }
+        }
+
+        //Check if Alive
+
+        if (isDead)
+        {
+            Scene cur_Scene = SceneManager.GetActiveScene();
+            SceneManager.LoadScene(cur_Scene.name, LoadSceneMode.Single);
         }
 
         // Crouching
@@ -160,7 +171,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             curJumpCount++;
-            if (grounded || curJumpCount < maxJumpCount)
+            if (grounded || (curJumpCount < maxJumpCount && jumpHeightTimer > MAXAIRTIME))
             {
                 jumpHeightTimer = 0f;
                 wallRunTimer = 0f;
@@ -168,7 +179,7 @@ public class PlayerController : MonoBehaviour
         }
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            jumpHeightTimer = MAXAIRTIME;
+            //jumpHeightTimer = MAXAIRTIME;
         }
         if (Input.GetKey(KeyCode.Space))
         {
@@ -302,6 +313,11 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.tag.Equals("BounceBlock"))
         {
             onBouncy = true;
+            curJumpCount = 0;
+        }
+        if (collision.gameObject.tag.Equals("Hazard"))
+        {
+            isDead = true;
         }
     }
 
