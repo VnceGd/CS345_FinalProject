@@ -4711,6 +4711,7 @@ GameObject:
   - component: {fileID: 6801931675588707116}
   - component: {fileID: 8600603304309074530}
   - component: {fileID: 4130172287179138849}
+  - component: {fileID: 5945470170013708239}
   m_Layer: 0
   m_Name: gear2
   m_TagString: BounceBlock
@@ -4810,3 +4811,16 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &5945470170013708239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7281710353644479925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75334c7c1f3924b74a67271a99b22f3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bounceForce: 15

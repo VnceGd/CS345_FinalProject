@@ -22,7 +22,6 @@ public class PlayerController : MonoBehaviour
     // Player Movement / Status
     private Rigidbody playerBody;
     private bool isCrouched;
-    private bool isDead;
     public float crouchHeight = 0.6f;
     private float maxSpeed = 10f;
     public float moveSpeed = 7000f;
@@ -47,6 +46,7 @@ public class PlayerController : MonoBehaviour
 
     // Dash
     private bool dashReady = true;
+    private bool dashing;
     private float dashTimer;
     public float dashCooldown = 3f;
     public float dashForce = 20f;
@@ -82,17 +82,20 @@ public class PlayerController : MonoBehaviour
         float v_input = Input.GetAxis("Vertical");
         Vector3 move_velocity = Vector3.zero;
 
-        if (Mathf.Abs(h_input) > 0f)
+        if (!dashing)
         {
-            move_velocity += Time.deltaTime * transform.right * h_input * moveSpeed;
-        }
-        if (Mathf.Abs(v_input) > 0f)
-        {
-            move_velocity += Time.deltaTime * transform.forward * v_input * moveSpeed;
-
-            if (v_input > 0f && onWall)
+            if (Mathf.Abs(h_input) > 0f)
             {
-                playerBody.velocity = Vector3.up * climbSpeed;
+                move_velocity += Time.deltaTime * transform.right * h_input * moveSpeed;
+            }
+            if (Mathf.Abs(v_input) > 0f)
+            {
+                move_velocity += Time.deltaTime * transform.forward * v_input * moveSpeed;
+
+                if (v_input > 0f && onWall)
+                {
+                    playerBody.velocity = Vector3.up * climbSpeed;
+                }
             }
         }
         if (playerBody.velocity.magnitude < maxSpeed)
@@ -131,7 +134,7 @@ public class PlayerController : MonoBehaviour
         playerCamera.transform.rotation = Quaternion.Euler(camRotate, charRotate, 0f);
 
         // Check grounded
-        if (Physics.Raycast(transform.position, Vector3.down, 1f))
+        if (Physics.Raycast(transform.position, Vector3.down, 1.1f))
         {
             if (!onBouncy && !grounded)
             {
@@ -153,15 +156,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        //Check if Alive
-        /*
-        if (isDead)
-        {
-            Scene cur_Scene = SceneManager.GetActiveScene();
-            SceneManager.LoadScene(cur_Scene.name, LoadSceneMode.Single);
-        }
-        */
-
         // Crouching
         if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.LeftControl))
         {
@@ -182,8 +176,8 @@ public class PlayerController : MonoBehaviour
         // Jumping
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            curJumpCount++;
-            if (grounded || (maxJumpCount > curJumpCount && jumpHeightTimer > MAXAIRTIME))
+            //curJumpCount++;
+            if (grounded || (maxJumpCount > curJumpCount++ && jumpHeightTimer > MAXAIRTIME))
             {
                 grounded = false;
                 jumpHeightTimer = 0f;
@@ -245,9 +239,35 @@ public class PlayerController : MonoBehaviour
             {
                 Vector3 h_dash = Vector3.zero;
                 Vector3 v_dash = Vector3.zero;
-                float h = Mathf.Abs(h_input);
-                float v = Mathf.Abs(v_input);
 
+                if (Mathf.Abs(h_input) > 0f)
+                {
+                    if (Mathf.Abs(v_input) > 0f)
+                    {
+                        playerBody.velocity = transform.forward * dashForce;
+                    }
+                    else
+                    {
+                        playerBody.velocity = transform.right * Mathf.Clamp(h_input, -1f, 1f) * dashForce;
+                    }
+                }
+                else if (Mathf.Abs(v_input) > 0f)
+                {
+                    if (Mathf.Abs(h_input) > 0f)
+                    {
+                        playerBody.velocity = transform.forward * dashForce;
+                    }
+                    else
+                    {
+                        playerBody.velocity = transform.forward * Mathf.Clamp(v_input, -1f, 1f) * dashForce;
+                    }
+                }
+                else
+                {
+                    playerBody.velocity = transform.forward * dashForce;
+                }
+                // Multi-direction dashing
+                /*
                 if (h > 0f || v > 0f)
                 {
                     if (h > 0f)
@@ -258,21 +278,24 @@ public class PlayerController : MonoBehaviour
                     {
                         v_dash = transform.forward * (v_input / v);
                     }
-                    playerBody.velocity = (h_dash + v_dash) * dashForce;
+                    playerBody.velocity = ((Vector3.Normalize(h_dash) / 2) + (Vector3.Normalize(v_dash) / 2))
+                                        * dashForce;
                 }
                 else
                 {
-                    if (grounded)
-                    {
-                        playerBody.velocity = transform.forward * dashForce;
-                    }
-                    else
-                    {
-                        playerBody.velocity = transform.forward * dashForce * 0.5f;
-                    }
+                    playerBody.velocity = transform.forward * dashForce;
+                    //if (grounded)
+                    //{
+                    //    playerBody.velocity = transform.forward * dashForce;
+                    //}
+                    //else
+                    //{
+                    //    playerBody.velocity = transform.forward * dashForce * 0.5f;
+                    //}
                 }
+                */
                 chromaticAberration.enabled.value = true;
-
+                dashing = true;
                 dashReady = false;
             }
             dashCooldownSlider.value = dashCooldownSlider.maxValue;
@@ -282,6 +305,7 @@ public class PlayerController : MonoBehaviour
             dashTimer += Time.deltaTime;
             if (dashTimer >= dashDuration)
             {
+                dashing = false;
                 chromaticAberration.enabled.value = false;
                 playerBody.AddForce(Time.deltaTime * moveDeceleration * -1f *
                                     new Vector3(playerBody.velocity.x, 0f, playerBody.velocity.z));
@@ -295,7 +319,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Lock or Unlock Cursor
-        if (Input.GetKeyDown(KeyCode.M))
+        if (Input.GetKeyDown(KeyCode.M) || Input.GetKeyDown(KeyCode.Escape))
         {
             if (cursorLocked)
             {
@@ -333,7 +357,6 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.tag.Equals("Hazard"))
         {
             Death();
-            //isDead = true;
         }
     }
 
@@ -354,7 +377,6 @@ public class PlayerController : MonoBehaviour
     {
         colliding = false;
         onWall = false;
-        //onBouncy = false;
         playerBody.constraints = RigidbodyConstraints.FreezeRotation;
         playerBody.AddForce(Vector3.down, ForceMode.Impulse);
     }
