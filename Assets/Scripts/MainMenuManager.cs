@@ -8,6 +8,10 @@ public class MainMenuManager : MonoBehaviour
     // Load a scene
     public void LoadScene(string sceneName)
     {
+        if (GameManager.instance != null)
+        {
+            DontDestroyOnLoad(GameManager.instance);
+        }
         SceneManager.LoadScene(sceneName);
     }
 

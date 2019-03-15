@@ -22,24 +22,24 @@ public class PlayerController : MonoBehaviour
     // Player Movement / Status
     private Rigidbody playerBody;
     private bool isCrouched;
-    private bool isDead = false;
+    private bool isDead;
     public float crouchHeight = 0.6f;
     private float maxSpeed = 10f;
     public float moveSpeed = 7000f;
     public float moveDeceleration = 400f;
 
     public float jumpForce = 7f;
-    private float jumpHeightTimer;
-    private int curJumpCount;
+    public float jumpHeightTimer;
+    public int curJumpCount;
     public int maxJumpCount = 2;
     public float gracePeriod = 0.1f;
-    private float gracePeriodTimer;
+    public float gracePeriodTimer;
 
     // Ground and Wall Check
-    private bool grounded;
-    private bool colliding;
+    public bool grounded;
+    public bool colliding;
     private bool onWall;
-    private bool onBouncy;
+    public bool onBouncy;
     private float wallRunTimer;
     public float wallRunDuration = 1f;
     public float climbSpeed = 2f;
@@ -97,61 +97,73 @@ public class PlayerController : MonoBehaviour
         }
         if (playerBody.velocity.magnitude < maxSpeed)
         {
+            // Accelerate the player
             playerBody.AddForce(move_velocity * (1 - (playerBody.velocity.magnitude / maxSpeed)));
         }
-        if (grounded && move_velocity.magnitude < 0.1f)
+        if (move_velocity.magnitude < 0.1f)
         {
-            playerBody.AddForce(Time.deltaTime * moveDeceleration * -playerBody.velocity);
-        }
-        else
-        {
-            playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f * 
-                                new Vector3(-playerBody.velocity.x, 0f, -playerBody.velocity.z));
+            // Decelerate the player
+            if (grounded && !onBouncy)
+            {
+                playerBody.AddForce(Time.deltaTime * moveDeceleration * -playerBody.velocity);
+            }
+            else
+            {
+                playerBody.AddForce(Time.deltaTime * moveDeceleration * 0.5f *
+                                    new Vector3(-playerBody.velocity.x, 0f, -playerBody.velocity.z));
+            }
         }
 
         // Camera Movement
         float mouse_x = Input.GetAxis("Mouse X");
+        float mouse_y = Input.GetAxis("Mouse Y");
 
         if (Mathf.Abs(mouse_x) > 0.0f)
         {
             transform.Rotate(Vector3.up * mouse_x * Time.deltaTime * cameraSensitivity);
+            charRotate += mouse_x * Time.deltaTime * cameraSensitivity;
         }
-
-        charRotate += mouse_x * Time.deltaTime * cameraSensitivity;
-        camRotate -= Input.GetAxis("Mouse Y") * Time.deltaTime * cameraSensitivity;
+        if (Mathf.Abs(mouse_y) > 0.0f)
+        {
+            camRotate -= Input.GetAxis("Mouse Y") * Time.deltaTime * cameraSensitivity;
+        }
         camRotate = Mathf.Clamp(camRotate, -90f, 90f);
         playerCamera.transform.rotation = Quaternion.Euler(camRotate, charRotate, 0f);
 
         // Check grounded
-        if (Physics.Raycast(transform.position, Vector3.down, 1.25f))
+        if (Physics.Raycast(transform.position, Vector3.down, 1f))
         {
-            if (!grounded)
+            if (!onBouncy && !grounded)
             {
                 playerCamera.GetComponent<Animation>().Play();
+                grounded = true;
             }
-            grounded = true;
             gracePeriodTimer = gracePeriod;
             curJumpCount = 0;
         }
         else
         {
-            gracePeriodTimer -= Time.deltaTime;
-            if (gracePeriodTimer <= 0f)
+            if (gracePeriodTimer < 0f)
             {
                 grounded = false;
+            }
+            else
+            {
+                gracePeriodTimer -= Time.deltaTime;
             }
         }
 
         //Check if Alive
-
+        /*
         if (isDead)
         {
             Scene cur_Scene = SceneManager.GetActiveScene();
             SceneManager.LoadScene(cur_Scene.name, LoadSceneMode.Single);
         }
+        */
 
         // Crouching
-        if (Input.GetKeyDown(KeyCode.C))
+        if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.LeftControl))
         {
             if (isCrouched)
             {
@@ -171,8 +183,9 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             curJumpCount++;
-            if (grounded || (curJumpCount < maxJumpCount && jumpHeightTimer > MAXAIRTIME))
+            if (grounded || (maxJumpCount > curJumpCount && jumpHeightTimer > MAXAIRTIME))
             {
+                grounded = false;
                 jumpHeightTimer = 0f;
                 wallRunTimer = 0f;
             }
@@ -194,22 +207,20 @@ public class PlayerController : MonoBehaviour
                     {
                         if (!grounded)
                         {
-                            playerBody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+                            playerBody.constraints = RigidbodyConstraints.FreezePositionY | 
+                                                     RigidbodyConstraints.FreezeRotation;
                         }
                     }
-
                 }
                 else
                 {
                     playerBody.constraints = RigidbodyConstraints.FreezeRotation;
                 }
             }
-            if (jumpHeightTimer < MAXAIRTIME)
+            if (grounded || (maxJumpCount > curJumpCount && jumpHeightTimer <= MAXAIRTIME))
             {
                 //playerBody.AddForce(Vector3.up * jumpForce);
-                playerBody.velocity = new Vector3(playerBody.velocity.x,
-                                                  jumpForce,
-                                                  playerBody.velocity.z);
+                playerBody.velocity = new Vector3(playerBody.velocity.x, jumpForce, playerBody.velocity.z);
             }
         }
 
@@ -304,11 +315,16 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void Death()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
-        if(!grounded)
+        if (collision.gameObject.tag.Equals("Environment"))
         {
-            colliding = true;
+            onBouncy = false;
         }
         if (collision.gameObject.tag.Equals("BounceBlock"))
         {
@@ -316,12 +332,17 @@ public class PlayerController : MonoBehaviour
         }
         if (collision.gameObject.tag.Equals("Hazard"))
         {
-            isDead = true;
+            Death();
+            //isDead = true;
         }
     }
 
     private void OnCollisionStay(Collision collision)
     {
+        if (!grounded)
+        {
+            colliding = true;
+        }
         if (collision.gameObject.tag.Equals("ClimbableWall"))
         {
             onWall = true;
@@ -333,7 +354,7 @@ public class PlayerController : MonoBehaviour
     {
         colliding = false;
         onWall = false;
-        onBouncy = false;
+        //onBouncy = false;
         playerBody.constraints = RigidbodyConstraints.FreezeRotation;
         playerBody.AddForce(Vector3.down, ForceMode.Impulse);
     }

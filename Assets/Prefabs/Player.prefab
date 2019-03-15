@@ -320,7 +320,7 @@ MeshRenderer:
   m_GameObject: {fileID: 1166793532222801392}
   m_Enabled: 1
   m_CastShadows: 1
-  m_ReceiveShadows: 1
+  m_ReceiveShadows: 0
   m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
@@ -393,10 +393,16 @@ MonoBehaviour:
   cameraSensitivity: 120
   crouchHeight: 0.6
   moveSpeed: 7000
-  moveDeceleration: 600
+  moveDeceleration: 1000
   jumpForce: 7
+  jumpHeightTimer: 0
+  curJumpCount: 0
   maxJumpCount: 2
   gracePeriod: 0.1
+  gracePeriodTimer: 0
+  grounded: 0
+  colliding: 0
+  onBouncy: 0
   wallRunDuration: 1
   climbSpeed: 3
   dashCooldown: 1
