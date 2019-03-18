@@ -1,6 +1,6 @@
 {
 "companyName": "DefaultCompany",
-"productName": "CS345_Project",
+"productName": "FPSParkour",
 "dataUrl": "WebGL_Build.data.unityweb",
 "wasmCodeUrl": "WebGL_Build.wasm.code.unityweb",
 "wasmFrameworkUrl": "WebGL_Build.wasm.framework.unityweb",
