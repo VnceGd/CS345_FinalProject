@@ -2,21 +2,21 @@
 
 public class Goal : MonoBehaviour
 {
-    private GameManager gameManager;
+    public GameManager gameManager;
 
     // Start is called before the first frame update
     private void Start()
     {
-        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        gameManager = GameManager.instance;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.tag == "Player")
         {
-            if (gameManager)
+            if (!gameManager.FinishLevel())
             {
-                gameManager.FinishLevel();
+                collision.gameObject.GetComponent<PlayerController>().FinishLevel();
             }
         }
     }

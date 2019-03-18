@@ -14,7 +14,6 @@ public class PlayerController : MonoBehaviour
     // Camera
     private Camera playerCamera;
     public float cameraSensitivity = 50f;
-    private bool cursorLocked;
     private float camRotate;
     private float charRotate;
     private ChromaticAberration chromaticAberration;
@@ -69,8 +68,6 @@ public class PlayerController : MonoBehaviour
 
         dashCooldownSlider.maxValue = dashCooldown;
 
-        cursorLocked = true;
-        Cursor.lockState = CursorLockMode.Locked;
         climb.gameObject.SetActive(false);
     }
 
@@ -321,17 +318,6 @@ public class PlayerController : MonoBehaviour
         // Lock or Unlock Cursor
         if (Input.GetKeyDown(KeyCode.M) || Input.GetKeyDown(KeyCode.Escape))
         {
-            if (cursorLocked)
-            {
-                cursorLocked = false;
-                Cursor.lockState = CursorLockMode.None;
-            }
-            else
-            {
-                cursorLocked = true;
-                Cursor.lockState = CursorLockMode.Locked;
-            }
-
             if (mainMenuManager)
             {
                 mainMenuManager.ToggleMenu();
@@ -342,6 +328,11 @@ public class PlayerController : MonoBehaviour
     public void Death()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+    }
+
+    public void FinishLevel()
+    {
+        mainMenuManager.FinishLevel();
     }
 
     private void OnCollisionEnter(Collision collision)

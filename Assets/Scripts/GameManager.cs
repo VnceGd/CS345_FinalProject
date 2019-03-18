@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class GameManager : MonoBehaviour
@@ -7,18 +8,14 @@ public class GameManager : MonoBehaviour
 
     public TextMeshProUGUI timeText;
     private float timeElapsed;
-    private bool levelComplete;
+    public bool levelComplete;
 
     // Start is called before the first frame update
-    private void Start()
+    private void Awake()
     {
         if (instance == null)
         {
             instance = this;
-        }
-        else
-        {
-            Destroy(instance);
         }
     }
 
@@ -32,8 +29,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void FinishLevel()
+    public bool FinishLevel()
     {
-        levelComplete = true;
+        bool previouslyCompleted = false;
+        if (!levelComplete)
+        {
+            levelComplete = true;
+            string levelName = SceneManager.GetActiveScene().name;
+            RecordManager.instance.SetRecord(levelName, timeElapsed);
+        }
+        else
+        {
+            previouslyCompleted = true;
+        }
+        return previouslyCompleted;
     }
 }
