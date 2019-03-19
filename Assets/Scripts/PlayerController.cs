@@ -300,17 +300,23 @@ public class PlayerController : MonoBehaviour
         else
         {
             dashTimer += Time.deltaTime;
-            if (dashTimer >= dashDuration)
+            // Allow movement
+            if (dashTimer >= dashDuration / 2)
             {
                 dashing = false;
-                chromaticAberration.enabled.value = false;
-                playerBody.AddForce(Time.deltaTime * moveDeceleration * -1f *
-                                    new Vector3(playerBody.velocity.x, 0f, playerBody.velocity.z));
-            }
-            if (dashTimer >= dashCooldown)
-            {
-                dashReady = true;
-                dashTimer = 0f;
+                // Disable dash effect
+                if (dashTimer >= dashDuration)
+                {
+                    chromaticAberration.enabled.value = false;
+                    playerBody.AddForce(Time.deltaTime * moveDeceleration * -1f *
+                                        new Vector3(playerBody.velocity.x, 0f, playerBody.velocity.z));
+                    // Enable dash
+                    if (dashTimer >= dashCooldown)
+                    {
+                        dashReady = true;
+                        dashTimer = 0f;
+                    }
+                }
             }
             dashCooldownSlider.value = dashTimer;
         }
