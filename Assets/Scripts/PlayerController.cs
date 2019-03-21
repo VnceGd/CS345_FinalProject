@@ -350,6 +350,11 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.tag.Equals("BounceBlock"))
         {
             onBouncy = true;
+            curJumpCount = 0;
+            if (collision.gameObject.name.Equals("Mushroom"))
+            {
+                FindObjectOfType<AudioManager>().Play("mushroomBounce");
+            }
         }
         if (collision.gameObject.tag.Equals("Hazard"))
         {
